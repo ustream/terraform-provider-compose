@@ -21,7 +21,7 @@ resource "compose_whitelist" "office_ip" {
 
 ### Installation:
 ```
-go get github.ibm.com/ustream-infra/terraform-provider-compose
+go get github.com/ustream/terraform-provider-compose
 
 # In ~/.terraformrc
 

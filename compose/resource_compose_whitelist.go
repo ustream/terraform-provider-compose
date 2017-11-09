@@ -1,4 +1,4 @@
-package composeio
+package compose
 
 import (
 	"errors"
