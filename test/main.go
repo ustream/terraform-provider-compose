@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ustream/terraform-provider-composeio/composeapi"
+	"github.com/ustream/terraform-provider-compose/composeapi"
 )
 
 func main() {
@@ -15,11 +15,11 @@ func main() {
 
 	client, err := composeapi.NewClient(apiToken, composeapi.BxEuDeApiBase)
 
-	client.SetLogger(true, os.Stdout)
-
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	client.SetLogger(true, os.Stdout)
 
 	recipe, errs := client.AddWhitelistForDeployment(areneMySQLDeployment, composeapi.Whitelist{IP: "1.2.3.4/32", Description: "terraform teszt"})
 
@@ -47,11 +47,11 @@ func main() {
 
 	time.Sleep(time.Second * 30)
 
-	recipe, errs = client.GetRecipe(areneMySQLDeployment, recipe.ID)
+	recipes, errs := client.GetRecipesForDeployment(areneMySQLDeployment)
 
 	if errs != nil {
 		log.Fatal(errs)
 	}
 
-	log.Println(recipe)
+	log.Println(recipes)
 }
