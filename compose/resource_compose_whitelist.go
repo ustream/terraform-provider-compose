@@ -119,7 +119,9 @@ func resourceComposeWhitelistRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	return errors.New("Failed to find whitelist entry")
+	d.SetId("")
+
+	return nil
 }
 
 func resourceComposeWhitelistDelete(d *schema.ResourceData, meta interface{}) error {
