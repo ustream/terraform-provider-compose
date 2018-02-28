@@ -5,15 +5,26 @@ import (
 	"os"
 	"time"
 
+	"github.com/ustream/terraform-provider-compose/compose"
 	"github.com/ustream/terraform-provider-compose/composeapi"
 )
 
 func main() {
 
-	apiToken := os.Getenv("BM_API_KEY")
-	areneMySQLDeployment := "bmix-eude-yp-dacd993c-8989-47c8-96a5-01a8ea4a99f4"
+	if len(os.Args) < 3 {
+		log.Fatal("Region must be set as the first argument, DeploymentID as second")
+	}
 
-	client, err := composeapi.NewClient(apiToken, composeapi.BxEuDeApiBase)
+	apiToken := os.Getenv("BM_API_KEY")
+	region := os.Args[1]
+	deployment := os.Args[2]
+
+	config := compose.Config{
+		BluemixAPIKey: apiToken,
+		Region:        region,
+	}
+
+	client, err := config.NewClient()
 
 	if err != nil {
 		log.Fatal(err)
@@ -21,7 +32,7 @@ func main() {
 
 	client.SetLogger(true, os.Stdout)
 
-	recipe, errs := client.AddWhitelistForDeployment(areneMySQLDeployment, composeapi.Whitelist{IP: "1.2.3.4/32", Description: "terraform teszt"})
+	recipe, errs := client.AddWhitelistForDeployment(deployment, composeapi.Whitelist{IP: "1.2.3.4/32", Description: "terraform teszt"})
 
 	if errs != nil {
 		log.Fatal(errs)
@@ -29,7 +40,7 @@ func main() {
 
 	log.Println(recipe)
 
-	whitelist, errs := client.GetWhitelistForDeployment(areneMySQLDeployment)
+	whitelist, errs := client.GetWhitelistForDeployment(deployment)
 
 	if errs != nil {
 		log.Fatal(errs)
@@ -37,7 +48,7 @@ func main() {
 
 	log.Println(whitelist.Embedded.Whitelist)
 
-	recipe, errs = client.DeleteWhitelistForDeployment(areneMySQLDeployment, whitelist.Embedded.Whitelist[0].ID)
+	recipe, errs = client.DeleteWhitelistForDeployment(deployment, whitelist.Embedded.Whitelist[0].ID)
 
 	if errs != nil {
 		log.Fatal(errs)
@@ -47,7 +58,7 @@ func main() {
 
 	time.Sleep(time.Second * 30)
 
-	recipes, errs := client.GetRecipesForDeployment(areneMySQLDeployment)
+	recipes, errs := client.GetRecipesForDeployment(deployment)
 
 	if errs != nil {
 		log.Fatal(errs)

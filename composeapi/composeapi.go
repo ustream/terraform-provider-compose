@@ -54,6 +54,19 @@ func NewClient(apiToken string, apiBase string) (*Client, error) {
 	}, nil
 }
 
+func NewClientByRegion(apiToken string, region string) (*Client, error) {
+	apibase := BxUsSouthApiBase
+	switch region {
+	case "us-south":
+		apibase = BxUsSouthApiBase
+	case "eu-de":
+		apibase = BxEuDeApiBase
+	case "eu-gb":
+		apibase = BxEuGbApiBase
+	}
+	return NewClient(apiToken, apibase)
+}
+
 // SetLogger can enable or disable http logging to and from the Compose
 // API endpoint using the provided io.Writer for the provided client.
 func (c *Client) SetLogger(enableLogging bool, logger io.Writer) *Client {

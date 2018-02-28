@@ -3,6 +3,7 @@ package compose
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 )
 
 func resourceComposeWhitelist() *schema.Resource {
+	log.Printf("[DEBUG] Setting up resource compose_whitelist")
 	return &schema.Resource{
 		Create:   resourceComposeWhitelistCreate,
 		Read:     resourceComposeWhitelistRead,
@@ -64,16 +66,16 @@ func resourceComposeWhitelistCreate(d *schema.ResourceData, meta interface{}) er
 
 	whitelist := composeapi.Whitelist{IP: ip, Description: description}
 
-	recipe, errs := client.AddWhitelistForDeployment(deploymentID, whitelist)
+	_, errs := client.AddWhitelistForDeployment(deploymentID, whitelist)
 
 	if errs != nil {
 		return fmt.Errorf("Error adding whitelist entry: %s", errs)
 	}
 
 	stateChangeConf := &resource.StateChangeConf{
-		Pending:    []string{"waiting", "running"},
-		Target:     []string{"complete"},
-		Refresh:    jobCompletedRefreshFunc(client, deploymentID, recipe.ID),
+		Pending:    []string{},
+		Target:     []string{"existing"},
+		Refresh:    whitelistCompletedRefreshFunc(client, deploymentID, ip),
 		Timeout:    5 * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -129,16 +131,16 @@ func resourceComposeWhitelistDelete(d *schema.ResourceData, meta interface{}) er
 
 	deploymentID := d.Get("deployment_id").(string)
 
-	recipe, errs := client.DeleteWhitelistForDeployment(deploymentID, d.Id())
+	_, errs := client.DeleteWhitelistForDeployment(deploymentID, d.Id())
 
 	if errs != nil {
 		return fmt.Errorf("Error deleting whitelist entry: %s", errs)
 	}
 
 	stateChangeConf := &resource.StateChangeConf{
-		Pending:    []string{"waiting", "running"},
-		Target:     []string{"complete"},
-		Refresh:    jobCompletedRefreshFunc(client, deploymentID, recipe.ID),
+		Pending:    []string{"existing"},
+		Target:     []string{},
+		Refresh:    whitelistCompletedRefreshFunc(client, deploymentID, d.Get("ip").(string)),
 		Timeout:    5 * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -159,5 +161,24 @@ func jobCompletedRefreshFunc(client *composeapi.Client, deploymentid string, rec
 			return nil, "", err[0]
 		}
 		return recipe.ID, recipe.Status, nil
+	}
+}
+
+func whitelistCompletedRefreshFunc(client *composeapi.Client, deploymentid string, whitelistip string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		whitelist, err := client.GetWhitelistForDeployment(deploymentid)
+		if err != nil {
+			return nil, "", err[0]
+		}
+		log.Printf("[DEBUG] Checking whitelist match: %s in %v", whitelistip, whitelist.Embedded.Whitelist)
+		for _, whitelistEntry := range whitelist.Embedded.Whitelist {
+
+			if whitelistEntry.IP == whitelistip {
+				log.Printf("[DEBUG] Match found")
+				return whitelistEntry.ID, "existing", nil
+			}
+		}
+		log.Printf("[DEBUG] Match not found")
+		return nil, "", nil
 	}
 }

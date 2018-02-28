@@ -6,12 +6,12 @@ import (
 	"github.com/ustream/terraform-provider-compose/composeapi"
 )
 
-type config struct {
+type Config struct {
 	BluemixAPIKey string
 	Region        string
 }
 
-func (c *config) newClient() (*composeapi.Client, error) {
+func (c *Config) NewClient() (*composeapi.Client, error) {
 	apiBase := composeapi.BxUsSouthApiBase
 	if c.Region == "eu-de" {
 		apiBase = composeapi.BxEuDeApiBase
@@ -55,10 +55,10 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	bluemixAPIKey := d.Get("bluemix_api_key").(string)
 	region := d.Get("region").(string)
 
-	config := config{
+	config := Config{
 		BluemixAPIKey: bluemixAPIKey,
 		Region:        region,
 	}
 
-	return config.newClient()
+	return config.NewClient()
 }
