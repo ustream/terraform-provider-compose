@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -15,10 +16,12 @@ import (
 func resourceComposeWhitelist() *schema.Resource {
 	log.Printf("[DEBUG] Setting up resource compose_whitelist")
 	return &schema.Resource{
-		Create:   resourceComposeWhitelistCreate,
-		Read:     resourceComposeWhitelistRead,
-		Delete:   resourceComposeWhitelistDelete,
-		Importer: &schema.ResourceImporter{},
+		Create: resourceComposeWhitelistCreate,
+		Read:   resourceComposeWhitelistRead,
+		Delete: resourceComposeWhitelistDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceComposeWhitelistImport,
+		},
 		Schema: map[string]*schema.Schema{
 			"ip": {
 				Type:     schema.TypeString,
@@ -181,4 +184,33 @@ func whitelistCompletedRefreshFunc(client *composeapi.Client, deploymentid strin
 		log.Printf("[DEBUG] Match not found")
 		return nil, "", nil
 	}
+}
+
+func resourceComposeWhitelistImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+
+	client := meta.(*composeapi.Client)
+	s := strings.Split(d.Id(), "@")
+	deploymentID, ip := s[0], s[1]
+
+	log.Printf("[DEBUG] DeploymentID: %s IP: %s", deploymentID, ip)
+	whitelist, errs := client.GetWhitelistForDeployment(deploymentID)
+
+	if errs != nil {
+		return nil, fmt.Errorf("Error querying whitelist entry: %s", errs)
+	}
+
+	log.Printf("[DEBUG] Checking whitelist %v", whitelist)
+	for _, whitelistEntry := range whitelist.Embedded.Whitelist {
+		if whitelistEntry.IP == ip {
+			results := make([]*schema.ResourceData, 1)
+			d.Set("deployment_id", deploymentID)
+			d.Set("description", whitelistEntry.Description)
+			d.Set("ip", whitelistEntry.IP)
+			d.SetId(whitelistEntry.ID)
+			results[0] = d
+			log.Printf("[DEBUG] Found match %v", d)
+			return results, nil
+		}
+	}
+	return nil, fmt.Errorf("Whitelist item not found")
 }

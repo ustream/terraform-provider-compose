@@ -12,11 +12,16 @@ provider "compose" {
   region          = "${var.ibm_bmx_region}"  # if not set, the BM_REGION environment variable is read (default: us-south)
 }
 
-resource "compose_whitelist" "office_ip" {
-  ip            = "191.62.47.19/32"
-  description   = "Allow connection from your office only"
-  deployment_id = "bmix-eude-yp-dacd993c-8989-47c8-96a5-01a8ea4a99f4"
+resource "compose_whitelist" "test_ip" {
+  ip            = "1.2.3.4/32"
+  description   = "whitelist test"
+  deployment_id = "bmix-dal-yp-d02b2b39-f7a2-4c99-97f5-3f34d56db2b7"
 }
+```
+
+### Import:
+```
+terraform import compose_whitelist.test_ip bmix-dal-yp-d02b2b39-f7a2-4c99-97f5-3f34d56db2b7@1.2.3.4/32
 ```
 
 ### Installation:
