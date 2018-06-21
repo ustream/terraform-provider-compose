@@ -12,11 +12,16 @@ type Config struct {
 }
 
 func (c *Config) NewClient() (*composeapi.Client, error) {
-	apiBase := composeapi.BxUsSouthApiBase
-	if c.Region == "eu-de" {
+	var apiBase string
+	switch c.Region {
+	case "us-east":
+		apiBase = composeapi.BxUsEastApiBase
+	case "eu-de":
 		apiBase = composeapi.BxEuDeApiBase
-	} else if c.Region == "eu-gb" {
+	case "eu-gb":
 		apiBase = composeapi.BxEuGbApiBase
+	default:
+		apiBase = composeapi.BxUsSouthApiBase
 	}
 	client, err := composeapi.NewClient(c.BluemixAPIKey, apiBase)
 	return client, err

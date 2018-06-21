@@ -15,6 +15,7 @@ import (
 
 const (
 	BxUsSouthApiBase = "https://composebroker-dashboard-public.mybluemix.net/api/2016-07/"
+	BxUsEastApiBase  = "https://composebroker-dashboard-public.us-east.mybluemix.net/api/2016-07/"
 	BxEuGbApiBase    = "https://composebroker-dashboard-public.eu-gb.mybluemix.net/api/2016-07/"
 	BxEuDeApiBase    = "https://composebroker-dashboard-public.eu-de.mybluemix.net/api/2016-07/"
 )
@@ -59,6 +60,8 @@ func NewClientByRegion(apiToken string, region string) (*Client, error) {
 	switch region {
 	case "us-south":
 		apibase = BxUsSouthApiBase
+	case "us-east":
+		apibase = BxUsEastApiBase
 	case "eu-de":
 		apibase = BxEuDeApiBase
 	case "eu-gb":
