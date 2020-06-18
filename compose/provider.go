@@ -35,14 +35,14 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The Bluemix API Key",
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"BM_API_KEY", "BLUEMIX_API_KEY", "IBMCLOUD_API_KEY"}, ""),
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"BM_API_KEY", "BLUEMIX_API_KEY", "IBMCLOUD_API_KEY", "IC_API_KEY"}, ""),
 				Sensitive:   true,
 			},
 			"region": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The Bluemix Region (for example 'us-south').",
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"BM_REGION", "BLUEMIX_REGION", "IBMCLOUD_REGION"}, "us-south"),
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"BM_REGION", "BLUEMIX_REGION", "IBMCLOUD_REGION", "IC_REGION"}, "us-south"),
 			},
 		},
 
